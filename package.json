@@ -1,0 +1,31 @@
+{
+  "name": "gitpage-jekyll-template",
+  "description": "Simple boilerplate for quickly setting up Jekyll with Normalize, Bourbon and Neat.",
+  "main": "gulpfile.js",
+  "author": "Marcus Albertsson",
+  "repository": "https://github.com/arubertoson/gitpage-jekyll-template",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.22.0",
+    "babel-register": "^6.23.0",
+    "cross-spawn": "latest",
+    "del": "latest",
+    "gulp": "gulpjs/gulp#4.0",
+
+    "gulp-sourcemaps": "latest",
+    "browser-sync": "latest",
+
+    "gulp-open": "latest",
+    "gulp-autoprefixer": "latest",
+    "gulp-clean-css": "latest",
+    "gulp-concat": "latest",
+    "gulp-connect": "latest",
+    "gulp-imagemin": "latest",
+    "gulp-install": "latest",
+    "gulp-rename": "latest",
+    "gulp-sass": "latest",
+    "gulp-uglify": "latest",
+    "gulp-util": "latest"
+  },
+  "presets": ["env"]
+}

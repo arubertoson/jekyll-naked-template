@@ -1,0 +1,70 @@
+title: "Boilerplate"
+author: "Marcus Albertsson"
+# email: your.email@domain.whatever
+keywords: "comma, separated, keywords"
+description: "Simple boilerplate for quickly setting up Jekyll with Normalize, Bourbon and Neat."
+timezone: Europe/Berlin
+
+baseurl: "/" # the subpath of your site, e.g. /blog/
+url: "https://arubertoson.github.io" # the base hostname & protocol for your site
+
+markdown: kramdown
+highlighter: rouge
+
+excerpt_separator: <!--more-->
+
+# Github Pages
+gem: [
+  'jekyll-paginate',
+  'jekyll-redirect-from',
+  'jekyll-sitemap',
+  'jekyll-seo-tag'
+]
+
+# Files to keep and exclude
+keep_files: ['_dev/images']
+exclude: [
+  '_dev',
+  'node_modules',
+  'bower.json',
+  'bower_components',
+  'package.json',
+  'gulpfile.babel.js',
+  '.babelrc',
+  'Gemfile',
+  'Gemfile.lock',
+  'TODOs.org'
+]
+
+collections:
+  tags:
+    output: true
+    permalink: /blog/tags/:name/
+  projects:
+    output: true
+    permalink: /projects/:name/
+
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Marcus Albertsson"
+      category: "blog"
+  -
+    scope:
+      path: ""
+      type: "tags"
+    values:
+      layout: "tag_page"
+  -
+    scope:
+      path: ""
+      type: "projects"
+    values:
+      layout: "project_page"
+      author: "Marcus Albertsson"
+      category: "project"

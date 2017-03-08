@@ -1,0 +1,17 @@
+{
+  "name": "gitpage-jekyll-template",
+  "authors": "Marcus Albertsson",
+    "description": "Simple boilerplate for quickly setting up Jekyll with Normalize, Bourbon and Neat.",
+  "license": "MIT",
+  "homepage": "https://github.com/arubertoson/gitpage-jekyll-template",
+  "dependencies": {
+    "normalize.css": "latest",
+    "bourbon": "latest",
+    "neat": "latest"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ]
+}
