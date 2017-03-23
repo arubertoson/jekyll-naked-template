@@ -1,25 +1,21 @@
 // gulpfile.js
 
-// TODO: Babel lookup (how to specify standard etc.)
-
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
 import gulp from 'gulp';
 import sass from 'gulp-sass';
-import open from 'gulp-open';
 import gutil from 'gulp-util';
 import rename from 'gulp-rename';
-import concat from 'gulp-concat';
 import uglify from 'gulp-uglify';
 import install from 'gulp-install';
 import imagemin from 'gulp-imagemin';
 import cleanCSS from 'gulp-clean-css';
+import autoprefixCSS from 'gulp-autoprefixer';
 
 import del from 'del';
 import spawn from 'cross-spawn';
-// TODO: Replace with browsersync
 import browser_sync from 'browser-sync';
 
 var bsync_jekyll = browser_sync.create('jekyll');
