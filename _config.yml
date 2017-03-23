@@ -32,36 +32,3 @@ exclude: [
   'Gemfile.lock',
   'TODOs.org'
 ]
-
-# TODO: For blog
-excerpt_separator: <!--more-->
-collections:
-  tags:
-    output: true
-    permalink: /blog/tags/:name/
-  projects:
-    output: true
-    permalink: /projects/:name/
-defaults:
-  -
-    scope:
-      path: ""
-      type: "posts"
-    values:
-      layout: "post"
-      author: "Marcus Albertsson"
-      category: "blog"
-  -
-    scope:
-      path: ""
-      type: "tags"
-    values:
-      layout: "tag_page"
-  -
-    scope:
-      path: ""
-      type: "projects"
-    values:
-      layout: "project_page"
-      author: "Marcus Albertsson"
-      category: "project"
