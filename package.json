@@ -8,24 +8,25 @@
   "devDependencies": {
     "babel-preset-es2015": "^6.22.0",
     "babel-register": "^6.23.0",
+    "bower": "^1.8.0",
+    "browser-sync": "latest",
     "cross-spawn": "latest",
     "del": "latest",
     "gulp": "gulpjs/gulp#4.0",
-
-    "gulp-sourcemaps": "latest",
-    "browser-sync": "latest",
-
-    "gulp-open": "latest",
     "gulp-autoprefixer": "latest",
     "gulp-clean-css": "latest",
     "gulp-concat": "latest",
     "gulp-connect": "latest",
     "gulp-imagemin": "latest",
     "gulp-install": "latest",
+    "gulp-open": "latest",
     "gulp-rename": "latest",
     "gulp-sass": "latest",
+    "gulp-sourcemaps": "latest",
     "gulp-uglify": "latest",
     "gulp-util": "latest"
   },
-  "presets": ["env"]
+  "presets": [
+    "env"
+  ]
 }

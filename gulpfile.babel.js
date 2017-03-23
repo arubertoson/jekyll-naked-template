@@ -4,6 +4,7 @@
 
 import os from 'os';
 import path from 'path';
+import fs from 'fs';
 
 import gulp from 'gulp';
 import sass from 'gulp-sass';
@@ -12,74 +13,75 @@ import gutil from 'gulp-util';
 import rename from 'gulp-rename';
 import concat from 'gulp-concat';
 import uglify from 'gulp-uglify';
-import connect from 'gulp-connect';
 import install from 'gulp-install';
 import imagemin from 'gulp-imagemin';
 import cleanCSS from 'gulp-clean-css';
 
 import del from 'del';
 import spawn from 'cross-spawn';
+// TODO: Replace with browsersync
+import browser_sync from 'browser-sync';
 
-const paths = {
-    src: '_dev',
-    depl: 'assets',
+var bsync_jekyll = browser_sync.create('jekyll');
 
+// TODO: path system is a mess
+var _dev = '_dev';
+var _dep = 'public';
+const dirs = {
+    src: _dev,
+    dep: _dep,
     vendors: {
         bower: {
             all: [
-                path.join('_dev', '**/vendors/**/*.*'),
+                path.join(_dev, '**/vendors/**/*.*'),
                 'bower_components'
             ],
-            package: 'bower.json',
+            pkg: 'bower.json',
             src: 'bower_components'
         },
-        node: 'node_modules'
+        node: {
+            pkg: 'package.json',
+            src: 'node_modules'
+        }
     },
-    html: [
-        '_includes/*.html',
-        '_layouts/*.html',
-        '*.html'
-    ],
-    md: [
-        '_drafs/*.md',
-        '_posts/*.md',
-    ],
+    html: {
+        files: [
+            '_includes/*.html',
+            '_layouts/*.html',
+            '*.html'
+        ]
+    },
     images: {
-        files: '_dev/images/**/*.{jpg,jpeg,png,gif}',
-        src: '_dev/images/',
-        dest: 'assets/images'
+        files: path.join(_dev, 'images/**/*.{jpg,jpeg,png,gif}'),
+        src: path.join(_dev, 'images'),
+        dep: path.join(_dep, 'images')
     },
-    css: {
-        files: '_dev/css/**/*.css',
-        src: '_dev/css/',
-        dest: 'assets/css'
+    sass: {
+        files: path.join(_dev, 'scss', 'main.scss'),
+        src: path.join(_dev, 'scss')
     },
-    scss: {
-        files: '_dev/scss/main.scss',
-        src: '_dev/scss/',
-        dest: 'assets/css'
-    },
-    fonts: 'assets/fonts/*'
+    fonts: {
+        src: path.join(_dep, 'fonts')
+    }
 }
 
 
 // Setup
 
 
-const clean = (done) => del(paths.vendors.bower.all, done);
+const clean = (done) => del(dirs.vendors.bower.all, done);
 function getdeps() {
-    return gulp.src(paths.vendors.bower.package)
+    return gulp.src(dirs.vendors.bower.pkg)
         .pipe(install());
 }
 
 function move_scss_deps() {
-    return gulp.src(path.join(paths.vendors.bower.src, '**/*.?(s)css'))
-        // paths.vendors.bower.src + '**/*.?(s)css')
-        .pipe(gulp.dest(path.join(paths.scss.src, 'vendors')));
+    return gulp.src(path.join(dirs.vendors.bower.src, '**/*.?(s)css'))
+        .pipe(gulp.dest(path.join(dirs.scss.src, 'vendors')));
 }
 
 function fix_normalize_dep() {
-    var normalize_p = path.join(paths.scss.src,
+    var normalize_p = path.join(dirs.scss.src,
                                 'vendors',
                                 'normalize.css');
     var normalize_f = path.join(normalize_p, 'normalize.css');
@@ -91,22 +93,47 @@ function fix_normalize_dep() {
 }
 
 
-// Tasks
+// Build
 
 
-function images() {
-    return gulp.src(paths.images.dest, {since: gulp.lastRun(images)})
-        .pipe(imagemin())
-        .pipe(gulp.dest(paths.images.dest));
-}
-
-function html() {
-    return gulp.src(paths.html, {since: gulp.lastRun(html)})
-        .pipe(connect.reload());
+function build_sass() {
+    return gulp.src(dirs.sass.files)
+        .pipe(sass().on('error', sass.logError))
+        // .pipe(cleanCSS())
+        .pipe(gulp.dest(dirs.dep));
+        // .pipe(bsync_jekyll.stream());
 }
 
 
-function jekyll_dev(done) {
+function is_dir(test_path) {
+    try {
+        return fs.statSync(test_path).isDirectory();
+    } catch(e) {
+        if (e.code === 'ENOENT') {
+            return false;
+        } else {
+            throw e;
+        }
+    }
+}
+
+function build_images(done) {
+    if (!is_dir(dirs.images.dep)) {
+        gutil. log('Image directory does not exists... skipping image build.');
+        done();
+    } else {
+        return gulp.src(dirs.images.dep, {since: gulp.lastRun(build_images)})
+            .pipe(imagemin())
+            .pipe(gulp.dest(dirs.images.dep));
+    }
+}
+
+
+const gulp_build = gulp.parallel(build_sass, build_images);
+
+
+function build_jekyll_dev(done) {
+    gulp_build();
     const jekyll = spawn('jekyll', [
         'build',
         '--watch',
@@ -127,73 +154,46 @@ function jekyll_dev(done) {
     done();
 }
 
-function jekyll() {
+function build_jekyll() {
+    gulp_build();
     return spawn('jekyll', [
-        'build',
-        '--trace'
+        'build', '--trace'
     ]);
 }
 
 
-function connect_dev(done) {
-    connect.server({
-        root: '_site',
-        port:8080,
-        livereload: true
+
+
+// Utils
+
+
+function server_jekyll() {
+    bsync_jekyll.init({
+        server: {
+            baseDir: "_site"
+        }
     });
-
-    // gutil.log(connect.server.port);
-    var browser = os.platform() === 'linux' ? 'google-chrome' : (
-        os.platform() === 'darwin' ? 'google chrome' : (
-            os.platform() === 'win32' ? 'chrome' : 'firefox'));
-    gulp.src('./')
-        .pipe(open({uri: 'http://localhost:8080', app: browser}));
-    done();
 }
-
-// What happens when files are changed
-// gulp.task('', () => {
-//     gulp.src('./_scss/main.scss')
-//         // .pipe($.plumber({errorHandler: errorAlert}))
-//         .pipe(sass())
-//         .pipe(clean_css())
-//         // .pipe(concat('style.css'))
-//         .pipe(gulp.dest('assets'));
-// });
-
-// What files to whatch
-// gulp.task('watch', () => {
-//     gulp.watch([
-//         '*.html'
-//     ], 'jekyll-build');
-//     gulp.watch('_scss/**/*.scss', 'css_build');
-//     gulp.watch('_site/**', connect.reload);
-// })
-
-// gulp.task('connect', function(done) {
-//     connect.server({
-//         root: '_site',
-//         livereload: true
-//     });
-//     done();
-// });
-
 
 function watch(done) {
-    // gulp.watch(['_site/**/*.*'], reload).pipe(connect.reload());
-    gulp.watch(['_site/**/*.html']).on('change', connect.reload);
+    gulp.watch(dirs.sass.src + "**/*.?(s)css", build_sass);
+    gulp.watch(['_site/**/*.html']).on('change', bsync_jekyll.reload);
     done();
 }
+
 
 // Public API
 
 
-
-const serve = gulp.parallel(jekyll_dev, connect_dev);//, watch);
 const setup = gulp.series(clean,
                           getdeps,
                           move_scss_deps,
                           fix_normalize_dep);
+const serve = gulp.parallel(build_jekyll, server_jekyll, watch);
+const build = gulp.series(build_jekyll);
+
+
 export {clean};
 export {setup};
 export {serve};
+export {build};

@@ -1,17 +1,15 @@
 title: "Boilerplate"
-author: "Marcus Albertsson"
-# email: your.email@domain.whatever
-keywords: "comma, separated, keywords"
-description: "Simple boilerplate for quickly setting up Jekyll with Normalize, Bourbon and Neat."
+author: "Boiler Plate"
+email: boiler@plate.com
+keywords: "boilerplate"
+description: "Simple boilerplate for quickly setting up Jekyll with gulp builds for github pages"
 timezone: Europe/Berlin
 
-baseurl: "/" # the subpath of your site, e.g. /blog/
-url: "https://arubertoson.github.io" # the base hostname & protocol for your site
+baseurl: "/"
+url: "your.weburl.com"
 
 markdown: kramdown
 highlighter: rouge
-
-excerpt_separator: <!--more-->
 
 # Github Pages
 gem: [
@@ -21,8 +19,7 @@ gem: [
   'jekyll-seo-tag'
 ]
 
-# Files to keep and exclude
-keep_files: ['_dev/images']
+# Files to exclude from jekyll build
 exclude: [
   '_dev',
   'node_modules',
@@ -36,6 +33,8 @@ exclude: [
   'TODOs.org'
 ]
 
+# TODO: For blog
+excerpt_separator: <!--more-->
 collections:
   tags:
     output: true
@@ -43,8 +42,6 @@ collections:
   projects:
     output: true
     permalink: /projects/:name/
-
-
 defaults:
   -
     scope:
