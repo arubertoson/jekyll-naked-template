@@ -27,11 +27,11 @@ const dirs = {
     src: _dev,
     dep: _dep,
     vendors: {
+        all: [
+            path.join(_dev, '**/vendors/**/*.*'),
+            'bower_components'
+        ],
         bower: {
-            all: [
-                path.join(_dev, '**/vendors/**/*.*'),
-                'bower_components'
-            ],
             pkg: 'bower.json',
             src: 'bower_components'
         },
@@ -62,45 +62,68 @@ const dirs = {
 }
 
 
-// Setup
-
-
+/**
+ * Clean the project dir from vendor plugins
+ */
 const clean = (done) => del(dirs.vendors.bower.all, done);
-function getdeps() {
+
+
+/**
+ * Install third party packages from bower
+ */
+function install_bower_packages() {
     return gulp.src(dirs.vendors.bower.pkg)
         .pipe(install());
 }
 
-function move_scss_deps() {
+
+/**
+ * As these are mainly scss files we're dealing with and our build environment
+ * won't allow for third party pacakges tagging along we move the source files
+ * to the dev map.
+ *
+ * NOTE: I am not confident this is the right solution.
+ */
+function move_bower_packages_to_dev() {
     return gulp.src(path.join(dirs.vendors.bower.src, '**/*.?(s)css'))
-        .pipe(gulp.dest(path.join(dirs.scss.src, 'vendors')));
+        .pipe(gulp.dest(path.join(dirs.sass.src, 'vendors')));
 }
 
-function fix_normalize_dep() {
-    var normalize_p = path.join(dirs.scss.src,
-                                'vendors',
-                                'normalize.css');
-    var normalize_f = path.join(normalize_p, 'normalize.css');
-    var stream = gulp.src(normalize_f)
+
+/**
+ * Rename normalize.css to _normalize.scss which makes it importable
+ * for sass main file.
+ */
+function normalize_to_scss() {
+    var npath = path.join(dirs.sass.src,
+                          'vendors',
+                          'normalize.css');
+    var nfile = path.join(npath, 'normalize.css');
+    var stream = gulp.src(nfile)
         .pipe(rename('_normalize.scss'))
-        .pipe(gulp.dest(normalize_p));
-    del(normalize_f);
+        .pipe(gulp.dest(npath));
+    del(nfile);
     return stream;
 }
 
 
-// Build
-
-
+/**
+ * Perfom various optimizations to sass files.
+ * 1. sass to css
+ * 2. optimize css with clean-css
+ */
 function build_sass() {
     return gulp.src(dirs.sass.files)
         .pipe(sass().on('error', sass.logError))
-        // .pipe(cleanCSS())
-        .pipe(gulp.dest(dirs.dep));
-        // .pipe(bsync_jekyll.stream());
+        .pipe(cleanCSS())
+        .pipe(gulp.dest(dirs.dep))
+        .pipe(bsync_jekyll.stream());
 }
 
 
+/**
+ * check if directory exists.
+ */
 function is_dir(test_path) {
     try {
         return fs.statSync(test_path).isDirectory();
@@ -113,6 +136,10 @@ function is_dir(test_path) {
     }
 }
 
+
+/**
+ * Optimize images for web.
+ */
 function build_images(done) {
     if (!is_dir(dirs.images.dep)) {
         gutil. log('Image directory does not exists... skipping image build.');
@@ -125,9 +152,15 @@ function build_images(done) {
 }
 
 
+/**
+ * Collection of build functions to run.
+ */
 const gulp_build = gulp.parallel(build_sass, build_images);
 
 
+/**
+ * Builds jekyll with additional flags for development, also logging.
+ */
 function build_jekyll_dev(done) {
     gulp_build();
     const jekyll = spawn('jekyll', [
@@ -150,6 +183,10 @@ function build_jekyll_dev(done) {
     done();
 }
 
+
+/**
+ * Deployment build for jekyll.
+ */
 function build_jekyll() {
     gulp_build();
     return spawn('jekyll', [
@@ -158,11 +195,9 @@ function build_jekyll() {
 }
 
 
-
-
-// Utils
-
-
+/**
+ * Serve with browser-sync for automatic reload on file changes.
+ */
 function server_jekyll() {
     bsync_jekyll.init({
         server: {
@@ -171,6 +206,11 @@ function server_jekyll() {
     });
 }
 
+
+/**
+ * Watch function to complement browser-sync and make sure to reload
+ * when wanted changes occur.
+ */
 function watch(done) {
     gulp.watch(dirs.sass.src + "**/*.?(s)css", build_sass);
     gulp.watch(['_site/**/*.html']).on('change', bsync_jekyll.reload);
@@ -178,18 +218,18 @@ function watch(done) {
 }
 
 
-// Public API
-
-
-const setup = gulp.series(clean,
-                          getdeps,
-                          move_scss_deps,
-                          fix_normalize_dep);
+/**
+ * Public API
+ */
+const bower = gulp.series(clean,
+                          install_bower_packages,
+                          move_bower_packages_to_dev,
+                          normalize_to_scss);
 const serve = gulp.parallel(build_jekyll, server_jekyll, watch);
 const build = gulp.series(build_jekyll);
 
 
 export {clean};
-export {setup};
+export {bower};
 export {serve};
 export {build};
